@@ -47,16 +47,16 @@
                 "description": "application gateway size"
             }
         },
-        "applicationGatewayTier": {
-            "type": "string",
-            "allowedValues": [
-                "WAF"
-            ],
-            "defaultValue": "WAF",
-            "metadata": {
-                "description": "application gateway tier"
-            }
-        },
+      "applicationGatewayTier": {
+        "type": "string",
+        "allowedValues": [
+          "WAF_v2"
+        ],
+        "defaultValue": "WAF_v2",
+        "metadata": {
+          "description": "application gateway tier"
+        }
+      },
         "capacity": {
             "type": "int",
             "allowedValues": [
@@ -139,7 +139,7 @@
             "name": "[parameters('frontEndPublicIpAdddressName')]",
             "location": "[parameters('location')]",
           "sku": {
-            "name": "[if(equals(parameters('applicationGatewayTier'), 'WAF_v2'), 'Basic','Standard_v2')]"
+            "name": "[if(equals(parameters('applicationGatewayTier'), 'WAF'), 'Basic','Standard')]"
           },
           "properties": {
               "publicIPAddressVersion": "IPv4",
