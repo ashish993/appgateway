@@ -1,0 +1,40 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "variables": {
+        "webApiVersion": "2016-08-01",
+        "cdWebAppNameTidy": "[toLower(trim(parameters('cdWebAppName')))]"
+    },
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "publicIPAddressName": {
+            "type": "string",
+            "minLength": 1
+        },
+        "cdWebAppName": {
+            "type": "string",
+            "minLength": 1
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[variables('webApiVersion')]",
+            "name": "[variables('cdWebAppNameTidy')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[parameters('location')]",
+            "properties": {
+                "siteConfig": {
+                    "ipSecurityRestrictions": [
+                        {
+                            "ipAddress": "[reference(concat('Microsoft.Network/publicIPAddresses/', parameters('publicIPAddressName')), '2018-08-01').ipAddress]",
+                            "subnetMask": "255.255.255.255"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
