@@ -1,0 +1,250 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "variables": {
+        "resourcesApiVersion": "2016-09-01"
+    },
+    "parameters": {
+        "standard": {
+            "type": "secureObject",
+            "defaultValue": {
+                "deploymentId": null,
+                "location": null,
+                "cdWebAppName": null
+            }
+        },
+        "extension": {
+            "type": "secureObject",
+            "defaultValue": {
+                "templateLinkAccessToken": null,
+                "frontendCertData": null,
+                "frontendCertPassword": null
+            }
+        },
+        "templateLinkBase": {
+            "type": "string",
+            "minLength": 1,
+            "defaultValue": "[uri(replace(json(string(deployment().properties.templateLink)).uri,' ','%20'), '.')]"
+        },
+        "templateLinkAccessToken": {
+            "type": "securestring",
+            "defaultValue": "[parameters('extension').templateLinkAccessToken]"
+        },
+        "deploymentId": {
+            "type": "string",
+            "defaultValue": "[coalesce(parameters('standard').deploymentId, resourceGroup().name)]"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[coalesce(parameters('standard').location, resourceGroup().location)]"
+        },
+        "addressPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16",
+            "minLength": 1,
+            "metadata": {
+                "description": "Address prefix for the Virtual Network"
+            }
+        },
+        "subnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/28",
+            "minLength": 1,
+            "metadata": {
+                "description": "Subnet prefix"
+            }
+        },
+        "applicationGatewaySize": {
+            "type": "string",
+            "allowedValues": [
+                "WAF_Medium",
+                "WAF_Large"
+            ],
+            "defaultValue": "WAF_Medium",
+            "metadata": {
+                "description": "application gateway size"
+            }
+        },
+        "applicationGatewayTier": {
+            "type": "string",
+            "allowedValues": [
+                "WAF"
+            ],
+            "defaultValue": "WAF",
+            "metadata": {
+                "description": "application gateway tier"
+            }
+        },
+        "capacity": {
+            "type": "int",
+            "allowedValues": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+            ],
+            "defaultValue": 2,
+            "metadata": {
+                "description": "Number of instances"
+            }
+        },
+        "wafEnabled": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "WAF Enabled"
+            }
+        },
+        "wafMode": {
+            "type": "string",
+            "allowedValues": [
+                "Detection",
+                "Prevention"
+            ],
+            "defaultValue": "Prevention",
+            "metadata": {
+                "description": "WAF Mode"
+            }
+        },
+        "wafRuleSetType": {
+            "type": "string",
+            "allowedValues": [
+                "OWASP"
+            ],
+            "defaultValue": "OWASP",
+            "minLength": 1,
+            "metadata": {
+                "description": "WAF Rule Set Type"
+            }
+        },
+        "wafRuleSetVersion": {
+            "type": "string",
+            "allowedValues": [
+                "2.2.9",
+                "3.0"
+            ],
+            "defaultValue": "3.0",
+            "minLength": 1,
+            "metadata": {
+                "description": "WAF Rule Set Version"
+            }
+        },
+        "frontEndPublicIpAdddressName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('deploymentId'), '-publicip')]",
+            "minLength": 1
+        },
+        "frontendCertData": {
+            "type": "string",
+            "metadata": {
+                "description": "Base-64 encoded form of the .pfx file. This is the cert terminating on the Application Gateway."
+            },
+            "defaultValue": "[parameters('extension').frontendCertData]",
+            "minLength": 1
+        },
+        "frontendCertPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for .pfx certificate"
+            },
+            "defaultValue": "[parameters('extension').frontendCertPassword]",
+            "minLength": 1
+        },
+        "cdWebAppName": {
+            "type": "string",
+            "defaultValue": "[parameters('standard').cdWebAppName]",
+            "minLength": 1
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "name": "[concat(parameters('deploymentId'), '-infrastructure')]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(uri(parameters('templateLinkBase'), 'nested/infrastructure.json'), parameters('templateLinkAccessToken'))]"
+                },
+                "parameters": {
+                    "deploymentId": {
+                        "value": "[parameters('deploymentId')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "addressPrefix": {
+                        "value": "[parameters('addressPrefix')]"
+                    },
+                    "subnetPrefix": {
+                        "value": "[parameters('subnetPrefix')]"
+                    },
+                    "applicationGatewaySize": {
+                        "value": "[parameters('applicationGatewaySize')]"
+                    },
+                    "applicationGatewayTier": {
+                        "value": "[parameters('applicationGatewayTier')]"
+                    },
+                    "capacity": {
+                        "value": "[parameters('capacity')]"
+                    },
+                    "wafEnabled": {
+                        "value": "[parameters('wafEnabled')]"
+                    },
+                    "wafMode": {
+                        "value": "[parameters('wafMode')]"
+                    },
+                    "wafRuleSetType": {
+                        "value": "[parameters('wafRuleSetType')]"
+                    },
+                    "wafRuleSetVersion": {
+                        "value": "[parameters('wafRuleSetVersion')]"
+                    },
+                    "frontEndPublicIpAdddressName": {
+                        "value": "[parameters('frontEndPublicIpAdddressName')]"
+                    },
+                    "frontendCertData": {
+                        "value": "[parameters('frontendCertData')]"
+                    },
+                    "frontendCertPassword": {
+                        "value": "[parameters('frontendCertPassword')]"
+                    },
+                    "cdWebAppName": {
+                        "value": "[parameters('cdWebAppName')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "name": "[concat(parameters('deploymentId'), '-application')]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(uri(parameters('templateLinkBase'), 'nested/application.json'), parameters('templateLinkAccessToken'))]"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "publicIPAddressName": {
+                        "value": "[parameters('frontEndPublicIpAdddressName')]"
+                    },
+                    "cdWebAppName": {
+                        "value": "[parameters('cdWebAppName')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', concat(parameters('deploymentId'), '-infrastructure'))]"
+            ]
+        }
+    ]
+}
